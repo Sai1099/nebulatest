@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Nebula</title>
+    <link rel="stylesheet" href="/shopItems/stylesheets/master.css">
+    <link rel="stylesheet" href="/shopItems/stylesheets/style.css">
+    <link rel="stylesheet" href="/shopItems/stylesheets/slider.css">    
+    <link rel="stylesheet" href="/shopItems/stylesheets/productInfo.css">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+        
+</head>
+
+
+<body>
+    <header>
+        <a href="/" class="logo">Nebula</a>
+        <ul>
+            <li><a href="/">Home</a></li>
+            <li><a href="/about">About</a></li>
+            <li><a href="/shop" class="active">Shop</a></li>
+            <li><a href="/contact">Contact</a></li>
+            <li><a href="/user" ><i class='bx bx-user-circle profile'></i></a></li>
+        </ul>
+        
+    </header>
+
+    <header class="shop">
+        <form action="/" method="post">
+        <ul>
+            <li><a href="/shop?type=tshirts">T-Shirts</a></li>
+            <li><a href="/shop?type=oversizedts">Oversized T-Shirt</a></li>
+            <li><a href="/shop?type=hoodies">Hoodies</a></li>
+            <li><a href="/shop">Design</a></li>
+        </ul>
+        </form>
+    </header>
+
+    <hr>
+    <!-- -----------------SLIDER DIVISON------------------ -->
+
+    <div class="slider">
+        <div class="list">
+            <div class="item">
+                <img src="/shopItems/Banner_01.jpg" alt="">
+            </div>
+            <div class="item">
+                <img src="/shopItems/Banner_02.jpg" alt="">
+            </div>
+            <div class="item">
+                <img src="/shopItems/Banner_03.jpg" alt="">
+            </div>
+            <div class="item">
+                <img src="/shopItems/Banner_04.jpg" alt="">
+            </div>
+        </div>
+        <div class="buttons">
+            <button id="prev"><</button>
+            <button id="next">></button>
+        </div>
+        <ul class="dots">
+            <li class="active"></li>
+            <li></li>
+            <li></li>
+            <li></li>
+        </ul>
+    </div>
+<!-- --------------THE SHOP PRODUCTS-------------- -->
+    <div class="product" >
+        <% for (i=0;i<Math.ceil(locals.products.length/4);i++){ %>
+            <div class="row">
+                <% for (j=0;j<4;j++){ %>
+                <div class="fig">
+                    <img class="figg" data-modal-target="#modal" alt="SERVER: IMAGE 404"src=<%="/shopItems/"+locals.type + '/' + locals.products[i+j]%> width="300px" height="200px">
+                    <figcaption><%= locals.products[i+j].replace(/%20/g," ").slice(0,locals.products[i+j].replace(/%20/g," ").length-4) %></figcaption>
+
+                    </div>
+                <% } %>
+            </div>
+        <% } %>
+        
+    </div>
+
+
+<!-- ----------------THE INFORMATION POPUP-------------- 
+<div class="modal" id="modal">
+<div class="modal-header">
+    <div class="title">Example Modal</div>
+    <button data-close-button class="close-button">&times;</button>
+</div>
+<div class="modal-body">
+    Lorem ipsum dolor <br>
+    <button id="orderButton" style="font-size: xx-large; padding: 10px; margin: 10px;">Order</button></div>
+</div>
+<div id="overlay"></div> -->
+
+
+
+
+<script src="/shopItems/scripts/slider.js"></script>
+<script src="/shopItems/scripts/productInfo.js"></script>
+
+</body>
+</html>

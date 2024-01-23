@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ADMIN T-Shirt Order Form</title>
+    <style>
+        *
+        {
+            margin:0;
+            padding:0;
+            box-sizing: border-box;
+            font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            scroll-behavior:smooth;
+        }
+        body
+        {
+            min-height:100vh;
+            background: linear-gradient(lightblue,#fff);
+            overflow-x:hidden;
+        }
+        label {
+            /* display: block; */
+            margin-top: 10px;
+        }
+        h1{
+            display:flex;
+            position: relative;
+            justify-content: center;
+            text-align: center;
+            font-size: 2.4rem;
+            padding:2rem;
+        }
+        .inputz{
+            position:relative;
+            text-align: center;
+            font-size: 30px;
+            border-radius: 20px;
+        }
+        .btn{
+            margin: 20px;
+            height:70px;
+            width:150px;
+            border-radius: 20px;
+            box-shadow:0 20px 35px rgba(0, 0, 0, 0.5);
+            background-color: orange;
+            font-size: 30px;
+        }
+        input{
+            height:50px;
+            width:100px;
+            box-shadow:0 20px 35px rgba(0, 0, 0, 0.5);
+            border-radius: 20px;
+            size: 50px;
+            text-align: center;
+            font-size: xx-large;
+        }
+
+        /* backend changes to ENTERING DISPLAY DETAILS */
+        .display{
+            width: 25rem;
+            margin: 0.4rem;
+        }
+        .deets{
+            width: 25rem;
+            margin: 0.4rem;
+        }
+        
+    </style>
+</head>
+
+<body>
+    <h1>BULKY BUY</h1>
+    <hr style="height:7px; background-color:black">
+
+    <h2 style="text-align: center; margin: 20px;">Enter Details For Each T-Shirt</h2>
+    <form action="/order/order-admin" method="post">
+            <%for(i=0;i<parseInt(locals.instruct.quantity);i++){ %>
+                <label><b><%= `For User-${i+1}:`%></b></label><br>
+                <% for (j=0;j<locals.instruct.field.length;j++){%>
+                    <label><%= locals.instruct.field[j] %>:</label><input type="text" class="display" name=<%= locals.instruct.field[j] %>>
+                <% } %>
+                <br>
+            <%} %>
+
+            <input type="submit" class="btn" value="ORDER">
+    </form>
+</body>
+</html>

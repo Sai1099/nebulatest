@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Login page</title>
+        <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+        <link rel="stylesheet" href="/master.css">
+        <link rel="stylesheet" href="/user/user.css">
+        
+
+    </head>
+    <body>
+        
+        </div>
+        
+        <div class="wrapper">
+            
+            <form name="login-form" action="/user/login" method="post">
+                <div class="logo">
+                    <h1>Login</h1>
+                </div>
+                <div class="input-box">
+                    <input type="text" placeholder="Email Id" name="email" required>
+                    <i class='bx bxs-user'></i>
+                </div>
+                <div class="input-box">
+                    <input type="password" placeholder="Password" name="password" required>
+                    <i class='bx bxs-lock-alt'></i>
+                </div>
+                <div class="remember-forgot">
+                    <label><input type="checkbox">Remember me</label>
+                    <a href="#">Forgot password?</a>
+                </div>
+                <button type="submit" class="btn">Login</button>
+                <div class="register-link">
+                    <p>Don't have an account? <a href="/user/signup">Register</a></p>
+                </div>
+            </form>
+            <div class="contents" >
+                <div class="parent">
+                    <a href="/home" >Home</a>
+                </div>
+                <div class="parent">
+                    <a href="/adminauth" >Admin</a> 
+                    <!-- look for a common signin way via google for admin+user -->
+                </div>
+                <div class="parent">
+                    <a href="/personauth" >Google</a>
+                    
+                </div>
+            </div>
+        
+    </body>
+</html>

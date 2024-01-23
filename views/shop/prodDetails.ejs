@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product</title>
+</head>
+<body>
+    <p id="name">NAME:</p>
+    <p id="description">DESCRIPTION:</p>
+    
+    <form name="prodPreference" action="/order/orderPreference" method="post">
+
+        <label>COLOR OPTION:</label> 
+        <input type="radio" id="black" name="color" checked> <label for="black">Black</label> 
+        <input type="radio" id="white" value="White" name="color"> <label for="white">White</label> <br>
+        <input type="submit" value="Order Now">
+    </form>
+</body>
+    <script>
+        document.getElementById('black').value= ("Black/"+(window.location.href.slice(window.location.href.indexOf('shop/details/')+13).replace(/%20/g," "))).split('/',3);
+        document.getElementById('white').value= ("White/"+(window.location.href.slice(window.location.href.indexOf('shop/details/')+13).replace(/%20/g," "))).split('/',3);
+        document.getElementById("name").innerHTML="NAME: "+ (window.location.href).split('/')[(window.location.href).split('/').length-1].replace(/%20/g," ");
+    
+    </script>
+
+</html>

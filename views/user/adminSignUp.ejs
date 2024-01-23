@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Signup page</title>
+        <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+        <link rel="stylesheet" href="/master.css">
+        <link rel="stylesheet" href="/user/user.css">
+        
+
+    </head>
+    <body>
+        
+        </div>
+        
+        <div class="wrapper">
+            
+            <form  name="signup-form" action="/user/signup" method="post">
+                <div class="logo">
+                    <h1>Admin Signup</h1>
+                </div>
+                <div class="input-box">
+                    <input type="text" placeholder="Name" name="name" required>
+                    <i class='bx bxs-user'></i>
+                </div>
+                <div class="input-box">
+                    <input type="password" placeholder="Password" name="password" required>
+                    <i class='bx bxs-lock-alt'></i>
+                </div>
+                <div class="input-box">
+                    <input type="email" placeholder="Email Id" name="email" required>
+                    <i class='bx bxs-lock-alt'></i>
+                </div>
+                <button type="submit" class="btn">Signup</button>
+                <div class="register-link">
+                    <p>Don't have an account? <a href="/user/login">Login</a></p>
+                </div>
+            </form>
+            <div class="contents">
+                <div class="parent">
+                    <a href="/adminauth">Google</a>
+                </div>
+                <div class="parent">
+                    <a href="/user/signup">User Register</a>
+                </div>
+            </div>
+    </body>
+</html>
