@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>T-Shirt Order Form</title>
+    <style>
+         *
+        {
+            margin:0;
+            padding:0;
+            box-sizing: border-box;
+            font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            scroll-behavior:smooth;
+        }
+        body
+        {
+            min-height:100vh;
+            background: linear-gradient(lightblue,#fff);
+            overflow-x:hidden;
+        }
+        label {
+            display: block;
+            margin-top: 10px;
+        }
+        h1{
+            display:flex;
+            position: relative;
+            justify-content: center;
+            text-align: center;
+            font-size: 2.4rem;
+            padding:2rem;
+        }
+        .inputz{
+            position:relative;
+            text-align: center;
+            font-size: 30px;
+            border-radius: 20px;
+        }
+        .btn{
+            margin: 20px;
+            height:70px;
+            width:150px;
+            border-radius: 20px;
+            box-shadow:0 20px 35px rgba(0, 0, 0, 0.5);
+            background-color: orange;
+            font-size: 30px;
+        }
+        .number{
+            height:50px;
+            width:100px;
+            box-shadow:0 20px 35px rgba(0, 0, 0, 0.5);
+            border-radius: 20px;
+            size: 50px;
+            text-align: center;
+            font-size: xx-large;
+        }
+
+        /* backend changes to ENTERING DISPLAY DETAILS */
+        .display{
+            width: 25rem;
+            margin: 0.4rem;
+            box-shadow:0 20px 35px rgba(0, 0, 0, 0.5);
+            border-radius: 20px;
+            text-align: center;
+            font-size: xx-large;
+        }
+        .deets{
+            width: 25rem;
+            margin: 0.4rem;
+        }
+        header .logo
+        {
+            color: #fff;
+            font-weight:700px;
+            text-decoration:none;
+            font-size:2em;
+            text-transform:uppercase;
+            letter-spacing:2px;
+            
+        }
+        header ul
+        {
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            z-index:10000;
+        }
+        header ul li
+        {
+            list-style:none;
+            margin-left:20p
+        }
+        header ul li a:not(.shop ul li a)
+        {
+            text-decoration:none;
+            padding:6px 15px;
+            color:#fff;
+            
+        }
+        header ul li a:hover 
+        {
+            background:black;
+            color:white;
+            border-radius:20px;
+        }
+        header:not([class="shop"])
+        {
+            position:absolute;
+            top:0;
+            left:0;
+            width:100%;
+            padding: 30px 100px;
+            display:flex;
+            justify-content: space-between;
+            align-items:center ;
+            background:linear-gradient(#2b1055,#2b1055);
+        } 
+        
+    </style>
+</head>
+
+<body>
+    <header>
+        <a href="#" class="logo">Nebula</a>
+        <ul>
+            <li><a href="/">Home</a></li>
+            <li><a href="/about">About</a></li>
+            <li><a href="/shop">Shop</a></li>
+            <li><a href="/contact">Contact</a></li>
+        </ul>
+        
+      </header>
+    <h1>CUSTOM FIELDS</h1>
+    <hr style="height:7px; background-color:black">
+
+    <h2 style="text-align: center; margin: 20px;">Buy products for your friends,family and teams!</h2>
+    <form name="user-order">        
+    
+        <div class="inputz">
+            <div class="csv">
+                Upload CSV File of Tshirt display data: <input type="file" name="csvFile" accept=".csv" style="text-decoration: none;" placeholder="CSV">
+            </div>
+                <button type="button" class="btn">Proceed</button>
+        </div>
+    </form>
+                <hr style="height:7px; background-color:black">
+    <h2 style="text-align: center; margin: 20px;">Buy products for your friends,family and teams!</h2>
+    <form name="prod-order"  action="/order/fillFields" method="post" >
+        
+        <div class="inputz">
+        <label for="quantity">Enter the number of <%= locals.orderProduct[1].toLowerCase().replace(/\b\w/g, s => s.toUpperCase())%>:</label>        
+        <input type="number" id="quantity" name="quantity" min="1" value="1">
+
+        <label for="quantity">Enter the fields to display inside <%= locals.orderProduct[1].toLowerCase().replace(/\b\w/g, s => s.toUpperCase())%> QR:</label>        
+        <input type="text" class="display" name="field"><br>
+        <input type="text" class="display" name="field"><br>
+        <input type="text" class="display" name="field"><br>
+        <input type="text" class="display" name="field">
+        <br><button type="button" class="addFields btn" style="font-size: 2rem; width:auto; height:auto; padding:0.07rem 0.6rem;" onclick="handleAddFields()">+</button>
+
+
+
+        <br><input type="submit" class="btn" value="BUY NOW">
+
+    </div>
+    </form>
+    
+    <script>
+        function handleAddFields(){
+            let container = document.querySelector('.inputz');
+            let addButton = document.querySelector(".addFields");
+            // let totalFields = document.querySelectorAll(".display").length
+            for (let i = 1; i <3; i++) {
+                var br= document.createElement('br');
+                var detail= document.createElement('input');
+                detail.className="display";  
+                detail.name = "field"
+
+                addButton.previousSibling.before(br);
+                addButton.previousSibling.before(detail);
+            }
+        }
+    </script> 
+    </body>
+</html>

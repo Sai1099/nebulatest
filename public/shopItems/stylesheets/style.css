@@ -1,0 +1,300 @@
+*
+{
+    margin:0;
+    padding:0;
+    box-sizing: border-box;
+    font-family:'poppins', sans-serif;
+    scroll-behavior:smooth;
+   
+}
+body
+{
+    min-height:100vh;
+    background-attachment: fixed;
+    background-size: cover;
+    overflow-x:hidden;
+    
+}
+header:not([class="shop"])
+{
+    position:absolute;
+    top:0;
+    left:0;
+    width:100%;
+    padding: 30px 100px;
+    display:flex;
+    justify-content: space-between;
+    align-items:center ;
+    background:linear-gradient(#2b1055,#2b1055);
+}
+.shop
+{
+    position:absolute;
+    top:0;
+    left:0;
+    width:100%;
+    padding: 30px 100px;
+    display:flex;
+    justify-content: space-between;
+    align-items:center ;
+}
+.shop a:hover 
+{
+    background-color: #2b1055;
+    color:#fff;
+}
+.shop a {
+    text-decoration: none;
+    padding:6px 15px;
+    font-weight: bolder;
+}
+header .logo
+{
+    color: #fff;
+    font-weight:700px;
+    text-decoration:none;
+    font-size:2em;
+    text-transform:uppercase;
+    letter-spacing:2px;
+    
+}
+header ul
+{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    z-index:10000;
+}
+header ul li
+{
+    list-style:none;
+    margin-left:20px;
+
+}
+header ul li a:not(.shop ul li a)
+{
+    text-decoration:none;
+    padding:6px 15px;
+    color:#fff;
+    
+}
+header ul li a:hover 
+{
+    background:black;
+    color:black;
+    border-radius:20px;
+} 
+section
+{
+    position:relative;
+    width:100%;
+    height:100vh;
+    padding:100px;
+    display:flex;
+    justify-content:center;
+    align-items: center;
+    overflow:hidden;
+}
+section::before
+{
+    content:'';
+    position:absolute;
+    bottom:0;
+    width:100%;
+    height:100px;
+    background:linear-gradient(to top,#1c0522,transparent);
+    z-index: 1000;
+}
+section img
+{
+    position:absolute;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    object-fit:cover; 
+    pointer-events: none;
+}
+
+#text
+{
+    position:absolute;
+    color:#000;
+    white-space:nowrap;
+    font-size:7.5vw;
+    /* right:-300px; */
+    z-index:9;
+    
+    
+    
+
+}
+#btn
+{
+    text-decoration:none;
+    display:inline-block;
+    padding:8px 30px;
+    border-radius:40px;
+    background:#fff;
+    color:#2b1055;
+    font-size:1.5em;
+    z-index:9;
+    transform:translateY(100px);
+    opacity:0.8;
+
+}
+#btn:hover
+{
+    background-color:transparent;
+    border:1px solid #2b1055;
+}
+.sec
+{
+    position:relative;
+    padding:100px;
+    background:#1c0522;
+}
+.sec h5
+{
+    font-size:3.5em;
+    margin-bottom:10px;
+    color:#fff;
+    text-align:center;
+
+}
+.sec p
+{
+    font-size:1em;
+    color:#000;
+}
+
+/*SHOP*/
+
+.shop{
+    position: relative;
+    top:5em;
+    z-index:0;
+    
+}
+.shop li{
+    margin: px 10%;
+}
+
+.product{
+    margin-top: 5%;
+    z-index: 10;
+}
+
+.row{                
+    display:flex;
+    margin-top: 5em;
+}
+
+.fig{
+    width:fit-content;
+    text-align: center;
+    margin: 0 2.5%;
+    
+}
+img{
+    border-radius: 30px;
+    border: 1px solid;
+    border-radius:0px;
+    
+    
+}
+.product{
+    width:100%;
+    height:100%;
+}
+
+
+.figg:hover { 
+box-shadow:0 20px 35px rgba(0, 0, 0.5, 0.5);
+}
+figcaption{
+    align-items: center;
+    color: #000;
+    font-family:sans-serif;
+    font-size: larger;
+}
+.figg{
+    border: 1px solid;
+    border-radius:10px;
+
+}
+/* -----------------------Slider division-------------------------- */
+.slider{
+    width: 2000px;
+    max-width: 100vw;
+    height: 300px;
+    margin: auto;
+    position: relative;
+    overflow: hidden;
+    top:60px;
+}
+.slider .list{
+    position: absolute;
+    width: max-content;
+    height: 100%;
+    left: 0;
+    top: 0;
+    display: flex;
+    transition: 1s;
+}
+.slider .list img{
+    width: 2000px;
+    max-width: 100vw;
+    height: 100%;
+    object-fit: cover;
+}
+.slider .buttons{
+    position: absolute;
+    top: 45%;
+    left: 5%;
+    width: 90%;
+    display: flex;
+    justify-content: space-between;
+}
+.slider .buttons button{
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: #fff5;
+    color: #fff;
+    border: none;
+    font-family: monospace;
+    font-weight: bold;
+}
+.slider .dots{
+    position: absolute;
+    bottom: 10px;
+    left: 0;
+    color: #fff;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+}
+.slider .dots li{
+    list-style: none;
+    width: 10px;
+    height: 10px;
+    background-color: #fff;
+    margin: 10px;
+    border-radius: 20px;
+    transition: 0.5s;
+}
+.slider .dots li.active{
+    width: 30px;
+}
+@media screen and (max-width: 768px){
+    .slider{
+        height: 400px;
+    }
+}
+.item{
+    width:2000px;
+    height:300px;
+}

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <h3>Place Bulk Order</h3>
+    <form name="order" action="/order" method="post">
+        <label for="">Name:</label>
+        <input type="text" name="name">
+        
+        <label for="">Post:</label>
+        <input type="text" name="post">
+
+        <label>Size:</label>
+        <input type="text" name="size">
+        
+        <input type="reset" value="Clear" id="clear">
+
+        <br><br><input type="submit" value="Place Order" id="submit">
+    </form>
+
+
+<script>
+    let x = document.querySelector("form br:nth-last-child(3)");
+    let y = document.createElement("button");
+    y.type="button";
+    y.innerHTML="Add Rows";
+    y.addEventListener("click",handleAddRow);
+    document.querySelector("form").insertBefore(y,x.nextSibling);
+function handleAddRow(){
+    let a = ["label","input"];
+    let b = ["size","post","name"];
+    for (j=0;j<10;j++){
+        for (i=0;i<3;i++){
+        let c = document.createElement(a[0]).innerHTML=" "+ b[i].charAt(0).toUpperCase() + b[i].slice(1)+": ";
+        
+        let d = document.createElement(a[1]);
+        d.name=b[i];
+        x.nextSibling.before(d);
+        x.nextSibling.before(c);
+        
+    }
+    x.after(document.createElement("br"));
+    x.after(document.createElement("br"));
+}
+}
+</script>
+
+
+</body>
+</html>
