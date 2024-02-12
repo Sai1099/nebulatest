@@ -2,20 +2,22 @@ const mongoose = require('mongoose');
 const passport = require('passport');
 const express = require('express');
 const session = require('express-session');
+const flash = require('express-flash');
 const csrf = require('csurf');
-
+const bodyParser = require('body-parser');
 const { v4: uuidv4 } = require('uuid');
 const app = express();
 //const csrf = require('csrf');
-
+const jwt = require('jsonwebtoken');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
-const csrfProtection = csrf();
+
 const path = require('path');
 app.set('view engine', 'ejs');
 const profileRouter = require('./routes/profile');
 const Team = require('../verificationnebula/models/Team.js');
 const TeamMember = require('../verificationnebula/models/TeamMember'); // Adjust the path accordingly
 const User = require('../verificationnebula/models/team_users.js');
+const authenticateToken = require('../verificationnebula/middleware/authenticateToken');
 const isAuthenticated = require('../verificationnebula/middleware/isAuthenticated.js');
 
 
@@ -31,17 +33,19 @@ app.use(session({
 }));
 
 
-
+app.use(flash());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
+app.set('views', path.join(__dirname, 'views'));
+
 // MongoDB connection
 mongoose.connect('mongodb+srv://sai:nebula123@cluster0.l9c5xyp.mongodb.net/?retryWrites=true&w=majority', {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });
 
-
-app.set('views', path.join(__dirname, 'views'));
 
 // User schema
 
@@ -50,8 +54,6 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 
-
-app.use('/profile', isAuthenticated);
 
 // Passport configuration
 passport.use(
@@ -105,12 +107,7 @@ passport.deserializeUser((id, done) => {
   });
 // Express middleware
 
-app.use((err, req, res, next) => {
-  if (err.code !== 'EBADCSRFTOKEN') return next(err);
 
-  // Handle CSRF token errors here
-  res.status(403).send('CSRF Token Error');
-});
 // Routes
 app.get('/', (req, res) => {
   res.send('Hello World!');
@@ -130,73 +127,57 @@ app.get(
 
 
 
+app.use('/profile', isAuthenticated);
+app.use('/profile', profileRouter);
 
-  app.get('/verify-and-fetch', (req, res) => {
-    const filePath = path.join(__dirname, 'verify-and-fetch.html');
-    res.sendFile(filePath);
-  });
-  app.post('/verify-and-fetch', async (req, res) => {
+app.get('/verify-and-fetch', (req, res) => {
+  const filePath = path.join(__dirname, './views', 'verify-and-fetch.html');
+  res.sendFile(filePath);
+});
+
+
+  app.post('/verify-and-fetch',isAuthenticated,  async (req, res) => {
     try {
-      const { collegeName, acceptanceCode } = req.body;
-      const userEmail = req.user.gmail;
+      if (!req.headers.authorization) {
+        return res.status(401).json({ message: 'Authorization header is missing' });
+      }
   
+      const token = req.headers.authorization.split(' ')[1]; // Get JWT token from Authorization header
+   // Get JWT token from Authorization header
+    const decodedToken = jwt.verify(token, 'ecdfb7b331c565acee335e0db2b65b90a527c3676998c5768d61a25cdb88cde8');
+    const userEmail = decodedToken.user.gmail; 
+    const { collegeName, acceptanceCode } = req.body;
+      
+      // Find or create user data in team_users collection
+      let user = await User.findOne({ gmail: userEmail });
+      if (!user) {
+        user = new User({ gmail: userEmail });
+      }
+      user.collegeName = collegeName;
+      user.acceptanceCode = acceptanceCode;
+      await user.save();
       // Find the teamData based on the user's Gmail, college name, and isVerified condition
       const teamData = await Team.findOne({
         gmail: userEmail,
-        collegeName: collegeName, // Filter by college name
-        isVerified: true,
+        collegeName: collegeName,
+        acceptanceCode: acceptanceCode,
+        isVerified: true
       });
   
-      if (teamData) {
-        const storedAcceptanceCode = teamData.acceptanceCode;
-  
-        if (acceptanceCode === storedAcceptanceCode) {
-          // If teamData is found, fetch or create corresponding team_user data
-          let teamUserData = await User.findOne({
-            gmail: userEmail,
-            collegeName: collegeName, // Filter by college name
-          });
-  
-          // If teamUserData not found, create a new record
-          if (!teamUserData) {
-            teamUserData = await User.create({
-              gmail: userEmail,
-              collegeName: collegeName, // Include college name
-              acceptanceCode: storedAcceptanceCode,
-              // Add other fields as needed
-            });
-          } else {
-            // Update the acceptance code in team_users collection
-            teamUserData.acceptanceCode = storedAcceptanceCode;
-            await teamUserData.save();
-          }
-  
-          res.json({
-            success: true,
-            teamData,
-            teamUserData,
-            acceptanceCode: storedAcceptanceCode,
-          });
-        } else {
-          res.json({
-            success: false,
-            message: 'Acceptance code does not match.',
-          });
-        }
+      if (teamDetails) {
+        res.json({ success: true, teamDetails });
       } else {
-        res.json({
-          success: false,
-          message: 'User not found in Team collection or is not verified for the provided college name.',
-        });
+        res.json({ success: false, message: 'Team details not found or not verified.' });
       }
+      res.json({ success: true, message: 'Verified and fetched data successfully' });
     } catch (error) {
       console.error(error);
-      res.status(500).send('Internal Server Error');
+      res.status(500).json({ message: 'Internal Server Error' });
     }
   });
   
-  app.use('/profile', profileRouter);
-  app.get('/dashboard', async (req, res) => {
+ 
+  app.get('/dashboard',isAuthenticated, async (req, res) => {
     try {
       const userEmail = req.user.gmail;
   
@@ -220,22 +201,7 @@ app.get(
   
   });
   
-  
- 
-  
- 
-  
 
-
-
-
-
-
-
- 
-  
-  
-  
 
 app.get('/logout', (req, res) => {
     req.logout();

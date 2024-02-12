@@ -8,7 +8,7 @@ const session = require('express-session');
 const nodemailer = require('nodemailer');
 const multer = require('multer');
 const jwt = require('jsonwebtoken');
-
+const verifyJwt = require('../verificationnebula/middleware/verifyJwt.js'); 
 const path = require('path');
 const User = require('./models/User.js');
 const paymentRoutes = require('./routes/payment');
@@ -49,8 +49,17 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
+function generateAuthToken(user) {
+  const token = jwt.sign({ user }, jwtSecret, { expiresIn: '1h' });
+  return token;
+}
 
+// JWT token verification middleware
 
+app.get('/protected-route', verifyJwt, (req, res) => {
+  // Access authenticated user information using req.user
+  // This route will only be accessible if the JWT token is verified
+});
 passport.use(new GoogleStrategy({
     clientID:  process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
@@ -88,7 +97,10 @@ const isAuthenticated = (req, res, next) => {
   }
   res.redirect('/login');
 };
-
+function generateAuthToken(user) {
+  const token = jwt.sign({ user }, jwtSecret, { expiresIn: '1h' });
+  return token;
+}
 // Use the Google OAuth routes
 app.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
 
@@ -103,9 +115,13 @@ app.get('/auth/google/callback', passport.authenticate('google', { failureRedire
     const user = await User.findOne({ email });
     user.sessionExpiration = Date.now() + 3 * 30 * 24 * 60 * 60 * 1000; // Set expiration
     await user.save();
-     
+    const token = generateAuthToken({ userId: user._id }); // Generate JWT token
+
+    // Send the JWT token to the client
+    //res.json({ authToken: token });
+
     
-    const token = jwt.sign({ userId: user._id }, jwtSecret, { expiresIn: '7889232000' }); // 3 months in milliseconds
+   // 3 months in milliseconds
 
 
     if (!user) {
@@ -132,25 +148,8 @@ app.get('/auth/google/callback', passport.authenticate('google', { failureRedire
 app.get('/login', passport.authenticate('google', {
   scope: ['profile', 'email']
 }));
-function
+
  
-verifyJwt(req, res, next) {
-    const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1];
-
-    if (!token) {
-        return res.status(401).send('Unauthorized');
-    }
-
-    jwt.verify(token, jwtSecret, (err, decoded) => {
-        if (err) {
-            return res.status(403).send('Forbidden');
-        }
-
-        req.user = decoded;
-        next();
-    });
-}
 
 app.get('/protected-route', verifyJwt, (req, res) => {
   // Access authenticated user information using req.user

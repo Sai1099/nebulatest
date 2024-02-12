@@ -6,12 +6,12 @@ const path = require('path');
 const nodemailer = require('nodemailer'); 
 const hCaptcha = require('hcaptcha');
 const qrcode = require('qrcode');
-
+const jwt = require('jsonwebtoken'); 
 const router = express.Router();
 const app = express();
 const Team = require('../models/Team.js');
 app.set('view engine', 'ejs');
-
+const { generateTokenMiddleware, generateAuthToken } = require('../middleware/generateTokenMiddleware');
 const isAuthenticated = require(path.join(__dirname, '..', 'middleware', 'isAuthenticated'));
 
 let records = [];
@@ -104,6 +104,12 @@ router.get('/nebula/dashboard/profile/:objectId', async (req, res) => {
    const adminToken = generateRandomToken();
    const emailDataForAdmin = [];
     try {
+      const teamName = req.body.teamname;
+
+      // Ensure team name is provided
+      if (!teamName) {
+          return res.status(400).send('Team Name is required.');
+      }
     if (req.session.uploadedCSV) {
       // CSV has already been uploaded, redirect to display page
       return res.redirect('/csv-importer/display');
@@ -141,11 +147,27 @@ router.get('/nebula/dashboard/profile/:objectId', async (req, res) => {
     const allTeamMembers = [];
     for (const record of records) {
       const { isVerified, token, acceptanceCode } = generateRandomTokenAndAcceptanceCode();
-      record.token = token;
+     
+      let uniqueToken = token;
+      while (await Team.exists({ token: uniqueToken })) {
+          uniqueToken = generateRandomTokenAndAcceptanceCode().token;
+      }
+
+      // Assign unique token and team name to the record
+      record.token = uniqueToken;
       record.acceptanceCode = acceptanceCode;
-      
       record.adminGmail = userEmail;
-      const teamMember = await Team.create(record);
+      record.teamName = teamName;
+
+
+      
+    
+    // Extract 'teamName' from the form data
+    
+
+    // Create the Team document with 'teamName'
+   
+    const teamMember = await Team.create(record);
       allTeamMembers.push(teamMember);
       
       

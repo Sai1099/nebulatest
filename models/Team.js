@@ -32,7 +32,7 @@ const teamSchema = new mongoose.Schema({
   teamName: {
     type: String,
     required: true,
-    unique: true // Ensure uniqueness
+    // Ensure uniqueness
   },
   acceptanceCode: {
     type: String,
