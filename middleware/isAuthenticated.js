@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 const { generateTokenMiddleware, generateAuthToken } = require('../middleware/generateTokenMiddleware');
-
+require('dotenv').config();
 const jwtSecret = process.env.JWT_SECRET; // Assuming you have defined the JWT secret
 
 const isAuthenticated = (req, res, next) => {

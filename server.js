@@ -1,4 +1,3 @@
-
 require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
@@ -8,23 +7,35 @@ const session = require('express-session');
 const nodemailer = require('nodemailer');
 const multer = require('multer');
 const jwt = require('jsonwebtoken');
-const verifyJwt = require('../verificationnebula/middleware/verifyJwt.js'); 
+const verifyJwt = require('./middleware/verifyJwt.js'); 
 const path = require('path');
 const User = require('./models/User.js');
+const getCurrentUser = require('./middleware/getCurrentUser.js');
 const paymentRoutes = require('./routes/payment');
 const bodyParser = require('body-parser');
 const fs = require('fs');
 const crypto = require('crypto');
-const jwtSecret = process.env.JWT_SECRET; // Get from environment variables
+const shoproute = require('./routes/shop');
+const app = express();
+
+
+const jwtSecret = process.env.JWT_SECRET; // Get from environment 
+const { generateAuthToken } = require('./middleware/generateTokenMiddleware.js');
+const Product = require('../verificationnebula/models/Product');
+
+const Review = require('./models/Review');
 
 
 // Assuming you have a middleware for authentication
 // Assuming you have a middleware for handling file uploads
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
 
-const app = express();
 // middleware/isAuthenticated.js
 app.use(bodyParser.json());
 app.use('/api/payment', paymentRoutes);
+
+app.use('/dashboard/shop',shoproute)
 // Connect to MongoDB Atlas
 
 mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true });
@@ -49,17 +60,10 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
-function generateAuthToken(user) {
-  const token = jwt.sign({ user }, jwtSecret, { expiresIn: '1h' });
-  return token;
-}
+
 
 // JWT token verification middleware
 
-app.get('/protected-route', verifyJwt, (req, res) => {
-  // Access authenticated user information using req.user
-  // This route will only be accessible if the JWT token is verified
-});
 passport.use(new GoogleStrategy({
     clientID:  process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
@@ -97,15 +101,11 @@ const isAuthenticated = (req, res, next) => {
   }
   res.redirect('/login');
 };
-function generateAuthToken(user) {
-  const token = jwt.sign({ user }, jwtSecret, { expiresIn: '1h' });
-  return token;
-}
+
 // Use the Google OAuth routes
 app.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
 
-
-app.get('/auth/google/callback', passport.authenticate('google', { failureRedirect: '/' }), async (req, res) => {
+async function generateAndPassToken(req, res, next) {
   try {
     // Retrieve user information from the Google profile
     const { id, displayName, emails } = req.user;
@@ -115,15 +115,7 @@ app.get('/auth/google/callback', passport.authenticate('google', { failureRedire
     const user = await User.findOne({ email });
     user.sessionExpiration = Date.now() + 3 * 30 * 24 * 60 * 60 * 1000; // Set expiration
     await user.save();
-    const token = generateAuthToken({ userId: user._id }); // Generate JWT token
-
-    // Send the JWT token to the client
-    //res.json({ authToken: token });
-
     
-   // 3 months in milliseconds
-
-
     if (!user) {
       // If the user is not found, redirect to the upload letter page
       return res.redirect('/upload-letter');
@@ -134,32 +126,47 @@ app.get('/auth/google/callback', passport.authenticate('google', { failureRedire
       return res.send('Your account is under verification. Check your email for the verification link.');
     }
 
-    // If the user is verified, redirect to the dashboard
-    res.redirect('/dashboard');
+    // Generate JWT token
+    const token = generateAuthToken({ userId: user._id });
+
+    // Pass the token to the request object
+    req.headers.authorization = `Bearer ${token}`;
+
+    // Continue to the next middleware
+    next();
 
   } catch (error) {
     console.error('Authentication Callback Error:', error);
     res.status(500).send('Internal Server Error');
   }
-  
+}
+
+app.get('/auth/google/callback', passport.authenticate('google', { failureRedirect: '/' }), generateAndPassToken, (req, res) => {
+  // Redirect to the dashboard
+  res.redirect('/dashboard');
 });
+
 
 
 app.get('/login', passport.authenticate('google', {
   scope: ['profile', 'email']
 }));
 
- 
+app.get('/dashboard/shop', (req, res) => {
+  // Handle the request here, for example:
+  res.send('Welcome to the shop dashboard!');
+});
 
-app.get('/protected-route', verifyJwt, (req, res) => {
+app.get('/dashboard/protected-route', isAuthenticated, (req, res) => {
   // Access authenticated user information using req.user
   // ...
+  res.send("hello");
 });
 
 app.get('/dashboard', async (req, res) => {
   if (req.isAuthenticated()) {
       const user = req.user;
-      // Check session expiration time here
+      // Check session expiration time here  
       if (user.sessionExpiration < Date.now()) {
           return res.redirect('/login');
       }
@@ -187,8 +194,7 @@ app.get('/dashboard', async (req, res) => {
 
 
 
-
-
+  app.use(getCurrentUser);
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
