@@ -5,39 +5,43 @@ const path = require('path');
 const csurf = require('csurf'); 
 // Import csurf middleware
 const isAuthenticated = require('../middleware/isAuthenticated');
+const verifyjwt = require('../middleware/verifyJwt');
 const Team = require('../models/Team'); // Import your Team model
 
 app.set('views', path.join(__dirname, '..', 'views')); // Set the views directory for the app
 app.set('view engine', 'ejs');
 router.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
 router.use(express.json()); // Parse JSON bodies
-router.use(csurf()); 
+
 // Apply CSRF protection middleware to the router
 
-app.use('/profile', router);
+
 // Route handler for /profile
-router.get('/', isAuthenticated, async (req, res) => {
+router.get('/', verifyjwt, async (req, res) => {
     try {
       // Fetch the team details for the logged-in user
-      
+      const userEmail = req.user.gmail;
+
+      // Fetch the team details for the logged-in user
+      const teamData = await Team.findOne({ gmail: userEmail });
       
   
-      if (!teamDetails) {
+      if (!teamData) {
         return res.status(404).send('Team not found.');
       }
       const successMessage = 'Profile updated successfully!';
       // Render the profile view with existing details
-      res.render('profile', { teamDetails, successMessage });
+      res.render('profile', { teamData, successMessage });
     } catch (error) {
       console.error('Error fetching team details:', error);
       res.status(500).send('Internal Server Error');
     }
 });
-router.get('/profile-update', isAuthenticated, async (req, res) => {
+router.get('/profile-update', verifyjwt, async (req, res) => {
   console.log('Reached profile-update route');
   try {
-      const csrfToken = req.csrfToken();
-      const email = req.user && req.user.emails && req.user.emails.length > 0 ? req.user.emails[0].value : '';
+      
+      const email = req.user.gmail;
 
     // Find the team based on the user's email address
     const teamDetails = await Team.findOne({ gmail: email });
@@ -53,7 +57,7 @@ router.get('/profile-update', isAuthenticated, async (req, res) => {
 });
 
 // Route handler for POST /profile/update
-router.post('/profile-update', isAuthenticated, async (req, res) => {
+router.post('/profile-update', verifyjwt, async (req, res) => {
     try {
       const userEmail = req.user.email;
   

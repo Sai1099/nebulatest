@@ -1,39 +1,49 @@
-<!-- views/dashboard.ejs -->
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard</title>
+  
 </head>
 <body>
-  <h1>Welcome to the Dashboard, <%= user.username %>!</h1>
-
-  <!-- Continue button to redirect to /csv-importer -->
-<!-- Include this link or button wherever you want it in your dashboard view -->
-<a href="/csv-importer">Continue to CSV Import</a>
-<script>
-  const token = '9031bb4e3f1cad727ba0a59a0bcf53a16f9e1179e520267a98b486f106a256f3';
-
-  fetch('http://localhost:3000/csv-importer/upload', {
-    method: 'GET',
-    headers: {
-      'Authorization': `Bearer ${token}`
+  <form id="hiddenTokenForm" style="display: none;"> <input type="hidden" name="token" value="<%= token %>">
+  </form>
+  
+  <% if (user) { %>
+    <const user = <%= JSON.stringify(user) %>;
+    <h1>Welcome to the Dashboard, <%= user.username %>!</h1>
+  <% } else { %>
+    <p>Error: User information not available.</p>
+  <% } %>
+  <a href="/csv-importer">Continue to CSV Import</a>
+  <script>
+    const token = document.getElementById('hiddenTokenForm').querySelector('input[name="token"]').value;
+    
+    console.log('Token:', token);
+    if (token) {
+      fetch('http://localhost:3000/dashboard/shop', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      })
+      .then(data => {
+        console.log(data);
+      })
+      .catch(error => {
+        console.error('Error:', error);
+      });
+    } else {
+      console.error('No token found.');
     }
-  })
-  .then(response => {
-    if (!response.ok) {
-      throw new Error('Network response was not ok');
-    }
-    return response.json();
-  })
-  .then(data => {
-    console.log(data);
-  })
-  .catch(error => {
-    console.error('Error:', error);
-  });
-</script>
+  </script>
+  
 </body>
 </html>

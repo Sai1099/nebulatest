@@ -1,23 +1,26 @@
+// middleware/verifyJwt.js
+const express = require('express');
 const jwt = require('jsonwebtoken');
+const secretKey = process.env.JWT_SECRET;
+const verifyJwt = (req, res, next) => {
+  const authHeader = req.headers.authorization;
 
-function verifyJwt(req, res, next) {
-  // Get the token from the request header or query parameter
-  const token = req.headers.authorization || req.query.token;
-
-  if (!token) {
-    return res.status(401).json({ message: 'Unauthorized: Missing token' });
+  if (!authHeader) {
+    // If no Authorization header is present, skip verification and proceed to the next middleware
+    return next();
   }
 
-  // Verify the JWT token
-  jwt.verify(token, '9031bb4e3f1cad727ba0a59a0bcf53a16f9e1179e520267a98b486f106a256f3', (err, decoded) => {
-    if (err) {
-      return res.status(401).json({ message: 'Unauthorized: Invalid token' });
-    }
+  const token = authHeader.split(' ')[1];
+  console.log(token);
 
-    // Store the decoded user information in the request object
-    req.user = decoded.user;
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decoded;
     next();
-  });
-}
-
+  } catch (err) {
+    console.error('Error verifying JWT:', err);
+    // If the token is invalid, skip verification and proceed to the next middleware
+    return next();
+  }
+};
 module.exports = verifyJwt;

@@ -11,7 +11,7 @@ const router = express.Router();
 const app = express();
 const Team = require('../models/Team.js');
 app.set('view engine', 'ejs');
-const { generateTokenMiddleware, generateAuthToken } = require('../middleware/generateTokenMiddleware');
+
 const isAuthenticated = require(path.join(__dirname, '..', 'middleware', 'isAuthenticated'));
 
 let records = [];

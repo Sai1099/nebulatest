@@ -1,3 +1,4 @@
+//For admin 
 require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
@@ -10,20 +11,22 @@ const jwt = require('jsonwebtoken');
 const verifyJwt = require('./middleware/verifyJwt.js'); 
 const path = require('path');
 const User = require('./models/User.js');
-const getCurrentUser = require('./middleware/getCurrentUser.js');
+
 const paymentRoutes = require('./routes/payment');
 const bodyParser = require('body-parser');
 const fs = require('fs');
 const crypto = require('crypto');
-const shoproute = require('./routes/shop');
+const axios = require('axios'); 
+const shoproute = require('./routes/shop.js');
 const app = express();
-
-
+const googleAuthMiddleware = require('../nebulatest/middleware/googleAuthMiddleware.js');
+const isAuthenticated = require('../nebulatest/middleware/isAuthenticated.js');
+//const setAuthorizationHeader = require('./middleware/setAuthorizationHeader.js');
+//const isAuthenticated = require('../nebulatest/middleware/isAuthenticated.js')
+const profileroute = require('./routes/profile.js');
 const jwtSecret = process.env.JWT_SECRET; // Get from environment 
-const { generateAuthToken } = require('./middleware/generateTokenMiddleware.js');
-const Product = require('../verificationnebula/models/Product');
 
-const Review = require('./models/Review');
+
 
 
 // Assuming you have a middleware for authentication
@@ -32,10 +35,11 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
 // middleware/isAuthenticated.js
+
 app.use(bodyParser.json());
 app.use('/api/payment', paymentRoutes);
 
-app.use('/dashboard/shop',shoproute)
+
 // Connect to MongoDB Atlas
 
 mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true });
@@ -44,8 +48,8 @@ mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTop
 
 // User schema and model
 // Assuming your User model looks something like this
-
-  
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
 
 // Passport setup
 
@@ -64,24 +68,7 @@ app.use(passport.session());
 
 // JWT token verification middleware
 
-passport.use(new GoogleStrategy({
-    clientID:  process.env.GOOGLE_CLIENT_ID,
-    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    callbackURL: 'http://localhost:3000/auth/google/callback'
-  },
-  (accessToken, refreshToken, profile, done) => {
 
-    const user = {
-      
-      
-      username: profile.displayName,
-      emails: profile.emails,
-      // Add any other relevant user information
-    };
-  
-    return done(null, user);
-  }
-  ));
     // Save user profile in your database or perform other actions
    
 
@@ -95,51 +82,69 @@ passport.deserializeUser((obj, done) => done(null, obj));
 app.use(passport.initialize());
 app.use(passport.session());
 
-const isAuthenticated = (req, res, next) => {
-  if (req.isAuthenticated()) {
-    return next();
+
+
+async function generateAuthToken(gmailId) {
+  try {
+    const secret = process.env.JWT_SECRET; // Store the secret in a secure environment variable
+    const expiresIn = '1h'; // Set a reasonable expiration time
+
+    // Ensure the gmailId is a string (in case it's coming from a query parameter or something else)
+    const gmailIdString = typeof gmailId === 'string' ? gmailId : gmailId.toString();
+
+    const token = jwt.sign({ gmailId: gmailIdString }, secret, { expiresIn });
+    
+    return token;
+  } catch (error) {
+    console.error('Error generating token:', error);
+    throw error; // Re-throw the error to be caught in the calling function (generateAndPassToken)
   }
-  res.redirect('/login');
-};
+}
+
 
 // Use the Google OAuth routes
-app.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
 
+app.get('/auth/google', googleAuthMiddleware);
 async function generateAndPassToken(req, res, next) {
   try {
-    // Retrieve user information from the Google profile
     const { id, displayName, emails } = req.user;
     const email = emails && emails.length > 0 ? emails[0].value : null;
-
+   
     // Find the user in the database based on email
-    const user = await User.findOne({ email });
-    user.sessionExpiration = Date.now() + 3 * 30 * 24 * 60 * 60 * 1000; // Set expiration
-    await user.save();
-    
+    const user = await User.findOne({ email }); // Use findOne instead of direct assignment
+
     if (!user) {
       // If the user is not found, redirect to the upload letter page
       return res.redirect('/upload-letter');
     }
 
+    // Now user is not null, proceed with setting sessionExpiration
+    user.sessionExpiration = Date.now() + 3 * 30 * 24 * 60 * 60 * 1000; // Set expiration
+    await user.save(); // Call save on the retrieved user object
+
     if (!user.isVerified) {
       // If the user is not verified, display a message and possibly resend the verification email
       return res.send('Your account is under verification. Check your email for the verification link.');
     }
-
+    
     // Generate JWT token
-    const token = generateAuthToken({ userId: user._id });
+    const token = await generateAuthToken(email);
 
-    // Pass the token to the request object
     req.headers.authorization = `Bearer ${token}`;
-
-    // Continue to the next middleware
+    console.log("Authorization Header:", req.headers.authorization);
+    req.session.token = token;
+    const accessToken = req.user.accessToken;
+    // Log the header after setting it
+   //ntinue to the next middleware
     next();
-
+    //res.render('dashboard',{user, token });
   } catch (error) {
     console.error('Authentication Callback Error:', error);
     res.status(500).send('Internal Server Error');
   }
+
 }
+
 
 app.get('/auth/google/callback', passport.authenticate('google', { failureRedirect: '/' }), generateAndPassToken, (req, res) => {
   // Redirect to the dashboard
@@ -152,10 +157,21 @@ app.get('/login', passport.authenticate('google', {
   scope: ['profile', 'email']
 }));
 
-app.get('/dashboard/shop', (req, res) => {
-  // Handle the request here, for example:
-  res.send('Welcome to the shop dashboard!');
+
+
+
+
+app.use((req, res, next) => {
+  if (req.user && req.user.token) { // Check if user and token exist
+    req.headers.authorization = `Bearer ${req.user.token}`;
+    console.log(req.headers.authorization);
+  }
+  next();
 });
+
+function handleSuccessfulAuth(req, res, user) {
+  res.render('dashboard', { user }); // Render the dashboard template
+}
 
 app.get('/dashboard/protected-route', isAuthenticated, (req, res) => {
   // Access authenticated user information using req.user
@@ -163,27 +179,40 @@ app.get('/dashboard/protected-route', isAuthenticated, (req, res) => {
   res.send("hello");
 });
 
-app.get('/dashboard', async (req, res) => {
-  if (req.isAuthenticated()) {
-      const user = req.user;
-      // Check session expiration time here  
-      if (user.sessionExpiration < Date.now()) {
-          return res.redirect('/login');
-      }
-      res.render('dashboard', { user });
+app.use(verifyJwt);
+app.get('/dashboard', verifyJwt,isAuthenticated, (req, res) => {
+  if (req.isAuthenticated()) { // Remove if not using passport for session management
+    const user = req.user;
+    console.log("User object:", user);
+
+    // Access the token from the authorization header (assuming it's set there)
+    //const token = req.headers.authorization && req.headers.authorization.split(' ')[1];
+
+   // if (!token) {
+      // Handle missing token case (e.g., redirect to login)
+     // return res.status(401).send('Unauthorized: Missing token');
+    //}
+    
+
+    // Set the Authorization header with the token
+    
+    // You can use the token for further processing here (optional)
+
+    const token = req.session.token || req.headers.authorization.split(' ')[1]; // Retrieve the token from the session or headers
+    req.headers.authorization = `Bearer ${token}`;
+    res.render('dashboard', { user, token });// Pass the user object to the template
   } else {
-      res.redirect('/login');
+    res.redirect('/login');
   }
-});
+})
 
-
-
-
-// ...
-
+// Apply verifyJwt middleware to the `/shop` route prefix
+app.use('/dashboard/shop', shoproute);
+app.use('/dashboard/profile', profileroute);
 // Express middleware
 
-
+app.use('/dashboard/shop', isAuthenticated); // Apply isAuthenticated middleware
+app.use('/dashboard/shop', shoproute);
 // Routes
 
   
@@ -194,7 +223,7 @@ app.get('/dashboard', async (req, res) => {
 
 
 
-  app.use(getCurrentUser);
+ 
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -249,7 +278,7 @@ const upload = multer({ storage: storage });
           });
       
           const verificationToken = crypto.randomBytes(20).toString('hex');
-          const userName = 'Unknown'; 
+          const userName = user.username; 
           // Save the verification token to the new user in the database
           const newUser = new User({
             username: userName,
@@ -383,10 +412,9 @@ app.get('/dashboard', (req, res) => {
 });
 const csvImporterRouter = require('./routes/csv_imp'); // Adjust the path based on your project structure
 app.use('/csv-importer', csvImporterRouter);
- 
 
 // Start the server
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
+app.listen(PORT, () => {~
     console.log(`Server is running on port ${PORT}`);
 });

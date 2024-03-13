@@ -1,3 +1,4 @@
+//for team members
 const mongoose = require('mongoose');
 const passport = require('passport');
 const express = require('express');
@@ -14,11 +15,12 @@ const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const path = require('path');
 app.set('view engine', 'ejs');
 const profileRouter = require('./routes/profile');
-const Team = require('../verificationnebula/models/Team.js');
-const TeamMember = require('../verificationnebula/models/TeamMember'); // Adjust the path accordingly
-const User = require('../verificationnebula/models/team_users.js');
-const authenticateToken = require('../verificationnebula/middleware/authenticateToken');
-const isAuthenticated = require('../verificationnebula/middleware/isAuthenticated.js');
+const Team = require('../nebulatest/models/Team.js');
+const TeamMember = require('../nebulatest/models/TeamMember'); // Adjust the path accordingly
+const User = require('../nebulatest/models/team_users.js');
+const verifyjwt = require('../nebulatest/middleware/verifyJwt.js')
+const isAuthenticated = require('../nebulatest/middleware/isAuthenticated.js');
+const { Console } = require('console');
 
 
 function generateSecretKey() {
@@ -126,8 +128,8 @@ app.get(
 
 
 
-
-app.use('/profile', isAuthenticated);
+app.use(verifyjwt);
+app.use('/profile', verifyjwt);
 app.use('/profile', profileRouter);
 
 app.get('/verify-and-fetch', (req, res) => {
@@ -136,16 +138,11 @@ app.get('/verify-and-fetch', (req, res) => {
 });
 
 
-  app.post('/verify-and-fetch',isAuthenticated,  async (req, res) => {
+  app.post('/verify-and-fetch',verifyjwt,  async (req, res) => {
     try {
-      if (!req.headers.authorization) {
-        return res.status(401).json({ message: 'Authorization header is missing' });
-      }
-  
-      const token = req.headers.authorization.split(' ')[1]; // Get JWT token from Authorization header
-   // Get JWT token from Authorization header
-    const decodedToken = jwt.verify(token, 'ecdfb7b331c565acee335e0db2b65b90a527c3676998c5768d61a25cdb88cde8');
-    const userEmail = decodedToken.user.gmail; 
+      
+    const userEmail = req.user.gmail; 
+    console.log(userEmail);
     const { collegeName, acceptanceCode } = req.body;
       
       // Find or create user data in team_users collection
@@ -164,23 +161,23 @@ app.get('/verify-and-fetch', (req, res) => {
         isVerified: true
       });
   
-      if (teamDetails) {
-        res.json({ success: true, teamDetails });
+      if (teamData) {
+        res.json({ success: true, teamData });
       } else {
         res.json({ success: false, message: 'Team details not found or not verified.' });
       }
-      res.json({ success: true, message: 'Verified and fetched data successfully' });
-    } catch (error) {
+     } catch (error) {
       console.error(error);
       res.status(500).json({ message: 'Internal Server Error' });
     }
+  
   });
   
  
-  app.get('/dashboard',isAuthenticated, async (req, res) => {
+  app.get('/dashboard', verifyjwt, async (req, res) => {
     try {
-      const userEmail = req.user.gmail;
-  
+      const userEmail = req.user;
+       console.log(userEmail);  
       // Check if the user has an acceptance code in team_users collection
       const teamUserData = await User.findOne({
         gmail: userEmail,
@@ -188,8 +185,11 @@ app.get('/verify-and-fetch', (req, res) => {
       });
   
       if (teamUserData) {
+        // Generate a JWT token
+        const token = jwt.sign({ userId: req.user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+  
         // Redirect to the dashboard if the acceptance code is present
-        res.render('dashboard', { user: req.user, teamUserData }); // Adjust this line based on your rendering logic
+        res.render('dashboard', { user: req.user, teamUserData, token }); // Pass the token to the view
       } else {
         // Redirect to the verify-and-fetch page if the acceptance code is not present
         res.redirect('/verify-and-fetch');
@@ -198,7 +198,6 @@ app.get('/verify-and-fetch', (req, res) => {
       console.error(error);
       res.status(500).send('Internal Server Error');
     }
-  
   });
   
 
