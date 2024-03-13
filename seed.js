@@ -1,7 +1,7 @@
 // seed.js
 require('dotenv').config();
 const mongoose = require('mongoose');
-const Product = require('./models/Product');
+const Product = require('../models/Product');
 
 // Connect to MongoDB
 mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true });

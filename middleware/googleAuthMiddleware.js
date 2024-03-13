@@ -9,14 +9,19 @@ passport.use(new GoogleStrategy({
     callbackURL: 'http://localhost:3000/auth/google/callback'
   },
   (accessToken, refreshToken, profile, done) => {
+    console.log('Google Profile:', profile); 
     console.log('Access Token:', accessToken);
     console.log('Refresh Token:',refreshToken);
+     // Ensure that the id field represents the googleId
+    const { displayName, emails } = profile;
+    const email = emails && emails.length > 0 ? emails[0].value : null;
+
+    // Return the user object with the extracted information
     const user = {
-      username: profile.displayName,
-      emails: profile.emails,
-      // Add any other relevant user information
+      username: displayName || 'User',
+      emails: emails,
     };
-    
+
     return done(null, user);
   }
 ));

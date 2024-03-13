@@ -109,18 +109,26 @@ async function generateAndPassToken(req, res, next) {
   try {
     const { id, displayName, emails } = req.user;
     const email = emails && emails.length > 0 ? emails[0].value : null;
-   
+    const username = displayName || 'User';
     // Find the user in the database based on email
-    const user = await User.findOne({ email }); // Use findOne instead of direct assignment
+     // Use findOne instead of direct assignment
+     let user = await User.findOne({ email });
 
-    if (!user) {
-      // If the user is not found, redirect to the upload letter page
-      return res.redirect('/upload-letter');
+     if (!user) {
+      user = new User({
+        username: username,
+        email: email,
+      });
     }
-
+    await user.save();
     // Now user is not null, proceed with setting sessionExpiration
     user.sessionExpiration = Date.now() + 3 * 30 * 24 * 60 * 60 * 1000; // Set expiration
     await user.save(); // Call save on the retrieved user object
+
+    if (!user.role) {
+      // If the user doesn't have a role, redirect to the upload letter page
+      return res.redirect('/upload-letter');
+    }
 
     if (!user.isVerified) {
       // If the user is not verified, display a message and possibly resend the verification email
@@ -257,14 +265,20 @@ const upload = multer({ storage: storage });
             return res.redirect('/');
           }
       
-          // Fetch user information
-          
-          const user = req.user;
-          const userEmail = user.emails && user.emails.length > 0 ? user.emails[0].value : 'Unknown';
-          //const userName = user.username || 'Unknown';
+          const userEmail = req.user.emails && req.user.emails.length > 0 ? req.user.emails[0].value : null;
+
+          if (!userEmail) {
+            // Handle the case where the user's email is not available
+            return res.status(400).send('User email not found');
+          }
       
-         
-          
+          // Find the user in the database based on email
+          const user = await User.findOne({ email: userEmail });
+      
+          if (!user) {
+            // If the user is not found, handle the error or redirect
+            return res.status(404).send('User not found');
+          }
           // Implement your verification logic here
           const letterPath = req.file.path;
       
@@ -280,14 +294,13 @@ const upload = multer({ storage: storage });
           const verificationToken = crypto.randomBytes(20).toString('hex');
           const userName = user.username; 
           // Save the verification token to the new user in the database
-          const newUser = new User({
-            username: userName,
-            email: userEmail,
-            isVerified: false, // Set to false by default, update to true after verification
-            verificationToken: verificationToken, // Include the verification token
-          });
+          user.isVerified = false;
+          user.verificationToken = verificationToken;
+          user.role = 'user'; // Set the desired role for the user
       
-          await newUser.save();
+          await user.save();
+      
+          
       
           // Update the verification link with the token and username
           const verificationLink = `https://nebula-1zdu.onrender.com/verify-email/${userEmail}/${verificationToken}`;
