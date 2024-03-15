@@ -4,6 +4,7 @@ const productRouter = require('./routes/product');
 const dotenv = require('dotenv');
 const Product = require('./models/product');
 const path = require('path');
+const multer = require('multer'); 
 
 dotenv.config();
 
@@ -26,6 +27,15 @@ app.use('/dash/products', productRouter);
 app.get('/dash/products', productRouter);
 app.get('/dash/products/add',productRouter);
 app.post('/dash/products',productRouter);
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'public/uploads/'); // Specify the upload directory
+  },
+  filename: (req, file, cb) => {
+    cb(null, `${Date.now()}-${file.originalname}`); // Generate a unique filename
+  }
+});
+const upload = multer({ storage: storage }); 
 // Define a GET route for "/api/products"
 app.get('/api/products', async (req, res) => {
   try {

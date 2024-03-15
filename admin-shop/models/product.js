@@ -13,10 +13,8 @@ const productSchema = new mongoose.Schema({
     type: Number,
     required: true
   },
-  pictureUrl: {
-    type: String,
-    required: true
-  }
+  pictureUrl: { type: String }, // For storing the URL of the picture
+  //pictureData: { type: String } 
 });
 
 module.exports = mongoose.model('Product', productSchema);

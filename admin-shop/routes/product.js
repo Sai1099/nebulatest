@@ -1,11 +1,11 @@
 const express = require('express');
 const multer = require('multer');
 const Product = require('../models/product');
-
+const path = require('path');
 const router = express.Router();
-
+const fs = require('fs');
 // Configure Multer for image uploads
-const upload = multer({ dest: 'public/images/' }); // Store uploaded images in 'public/images'
+const upload = multer({ dest: 'public/uploads/' }); // Store uploaded images in 'public/images'
 
 router.get('/dash/products', async (req, res) => {
   try {
@@ -18,7 +18,7 @@ router.get('/dash/products', async (req, res) => {
   }
 });
 router.get('/dash/products/add', (req, res) => {
-  res.render('add_product'); // Assuming you have a view file named add_product.ejs
+  res.render('add_product', { product: {} });// Assuming you have a view file named add_product.ejs
 });
 router.post('/dash/products', upload.single('picture'), async (req, res) => {
   try {
@@ -27,11 +27,17 @@ router.post('/dash/products', upload.single('picture'), async (req, res) => {
     // Generate a unique filename (optional)
     const filename = req.file ? req.file.filename : null;
 
+    // Read the contents of the uploaded file
+    const pictureData = req.file
+      ? fs.readFileSync(path.join('public/uploads', req.file.filename))
+      : null;
+
     const product = new Product({
       name,
       description,
       price,
-      pictureUrl: filename ? `/images/${filename}` : null // Adjust path based on your setup
+      pictureUrl: filename ? `/uploads/${filename}` : null, // Adjust path based on your setup
+      //pictureData: pictureData ? pictureData.toString('base64') : null // Store picture data as Base64 string
     });
 
     await product.save();

@@ -26,14 +26,14 @@ const isAuthenticated = require('../nebulatest/middleware/isAuthenticated.js');
 const profileroute = require('./routes/profile.js');
 const jwtSecret = process.env.JWT_SECRET; // Get from environment 
 
-
+app.use(express.static(path.join(__dirname, 'public')));
 
 
 // Assuming you have a middleware for authentication
 // Assuming you have a middleware for handling file uploads
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
-
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // middleware/isAuthenticated.js
 
 app.use(bodyParser.json());
@@ -110,6 +110,7 @@ async function generateAndPassToken(req, res, next) {
     const { id, displayName, emails } = req.user;
     const email = emails && emails.length > 0 ? emails[0].value : null;
     const username = displayName || 'User';
+    console.log
     // Find the user in the database based on email
      // Use findOne instead of direct assignment
      let user = await User.findOne({ email });
@@ -214,12 +215,13 @@ app.get('/dashboard', verifyJwt,isAuthenticated, (req, res) => {
   }
 })
 
-// Apply verifyJwt middleware to the `/shop` route prefix
+app.use('/dashboard/shop', isAuthenticated);
+//dleware to the `/shop` route prefix
 app.use('/dashboard/shop', shoproute);
 app.use('/dashboard/profile', profileroute);
 // Express middleware
 
-app.use('/dashboard/shop', isAuthenticated); // Apply isAuthenticated middleware
+ // Apply isAuthenticated middleware
 app.use('/dashboard/shop', shoproute);
 // Routes
 
@@ -394,6 +396,9 @@ app.get('/verify-email/:email/:token', async (req, res) => {
 app.use(passport.initialize());
 app.use(passport.session());
 // ... (Remaining code)
+
+
+
 app.get('/logout', async (req, res) => {
   try {
     await req.logout((err) => { // Callback function for req.logout()

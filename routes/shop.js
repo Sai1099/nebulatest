@@ -4,9 +4,13 @@ const express = require('express');
 const router = express.Router();
 const Product = require('../models/product');
 const Review = require('../models/Review');
+const path = require('path');
 const jwt = require('jsonwebtoken'); // Import the jsonwebtoken library
 const verifyToken = require('../middleware/verifyJwt');
 const app = express();
+
+
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // Define the route handler for GET /products
 router.get('/products', verifyToken,async (req, res) => {
   try {
@@ -18,25 +22,20 @@ router.get('/products', verifyToken,async (req, res) => {
   }
 });
 
-
-router.get('/products/:productId',verifyToken, async (req, res) => {
+router.get('/products/:productId', verifyToken, async (req, res) => {
   try {
     const productId = req.params.productId;
-    const product = await Product.findById(productId);
+    const product = await Product.findById(productId).populate('reviews');
     const user = req.user.username;
     console.log(user);
 
-    // Extract user ID from the decoded token (assuming the verifyJwt middleware has already set `req.user`)
-    // If you haven't implemented user ID extraction in verifyJwt.js, uncomment the following line and replace `req.user.userId` with the correct approach.
-    // const userId = req.user.userId;
-
-    res.render('product-details', { product, user }); // Pass the user ID (if necessary) to the template
+    res.render('product-details', { product, user });
   } catch (error) {
     console.error(error);
     res.status(500).send('Internal Server Error');
   }
 });
-router.get('/', async (req, res) => {
+router.get('/', verifyToken,async (req, res) => {
   try {
     const products = await Product.find();
     res.render('shop', { products });

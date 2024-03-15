@@ -1,29 +1,68 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Product Details</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .review {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
 </head>
 <body>
-    <h1><%= product.name %></h1>
-    <p>Description: <%= product.description %></p>
-    <p>Price: <%= product.price %></p>
-    
-    <h2>Reviews</h2>
-    <% product.reviews.forEach(review => { %>
-        <p><%= review.text %></p>
-    <% }) %>
+    <div class="container">
+        <h1><%= product.name %></h1>
+        <% if (product.pictureUrl) { %>
+            <img src="<%= product.pictureUrl %>" alt="Product Image">
+        <% } else { %>
+            <p>No image available</p>
+        <% } %>
+        <p>Description: <%= product.description %></p>
+        <p>Price: <%= product.price %></p>
+        
 
-    <form action="/dashboard/shop/products/<%= product._id %>/reviews" method="post">
-        <label for="rating">Rating:</label>
-        <input type="number" id="rating" name="rating" required>
-        <textarea name="text" placeholder="Enter your review" required></textarea>
-        <!-- Include username input instead of userId -->
-        <input type="hidden" name="username" value="<%= user.username %>">
-        <button type="submit">Submit Review</button>
-    </form>
-    
+        <h2>Reviews</h2>
+        <% if (product.reviews.length > 0) { %>
+            <% product.reviews.forEach(review => { %>
+                <div class="review">
+                    <p>Rating: <%= review.rating %></p>
+                    <p>User: <%= review.username %></p>
+                    <p><%= review.text %></p>
+                </div>
+            <% }) %>
+        <% } else { %>
+            <p>No reviews yet.</p>
+        <% } %>
+
+        <h3>Post a Review</h3>
+        <form action="/dashboard/shop/products/<%= product._id %>/reviews" method="post">
+            <label for="rating">Rating:</label>
+            <input type="number" id="rating" name="rating" min="1" max="5" required>
+            <textarea name="text" placeholder="Enter your review" required></textarea>
+            <!-- Include username input instead of userId -->
+            <input type="hidden" name="username" value="<%= user.username %>">
+            <button type="submit">Submit Review</button>
+        </form>
+
+        <a href="/dashboard/shop">Back to Shop</a>
+    </div>
 </body>
 </html>
