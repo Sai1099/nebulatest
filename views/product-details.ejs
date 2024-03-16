@@ -1,68 +1,129 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Product Details</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f4;
-        }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        .review {
-            border: 1px solid #ccc;
-            padding: 10px;
-            margin-bottom: 10px;
-        }
-        img {
-            max-width: 100%;
-            height: auto;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Product Details</title>
+  <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css"/>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f4;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .review {
+      border: 1px solid #ccc;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+    img {
+      max-width: 100%;
+      height: auto;
+    }
+    .product-images {
+      max-width: 500px;
+      margin: 0 auto;
+      position: relative;
+    }
+    .slick-prev,
+    .slick-next {
+      position: absolute;
+      top: calc(100% + 10px);
+      z-index: 1;
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+    }
+    .slick-prev {
+      left: 0;
+    }
+    .slick-next {
+      right: 0;
+    }
+    .slick-dots {
+      display: flex !important;
+      justify-content: center;
+      margin-top: 10px;
+      list-style-type: none;
+    }
+    .slick-dots li {
+      margin: 0 5px;
+    }
+    .slick-dots li button {
+      font-size: 0;
+      width: 10px;
+      height: 10px;
+      background-color: #ccc;
+      border-radius: 50%;
+      border: none;
+      cursor: pointer;
+    }
+    .slick-dots li.slick-active button {
+      background-color: #333;
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1><%= product.name %></h1>
-        <% if (product.pictureUrl) { %>
-            <img src="<%= product.pictureUrl %>" alt="Product Image">
-        <% } else { %>
-            <p>No image available</p>
-        <% } %>
-        <p>Description: <%= product.description %></p>
-        <p>Price: <%= product.price %></p>
-        
-
-        <h2>Reviews</h2>
-        <% if (product.reviews.length > 0) { %>
-            <% product.reviews.forEach(review => { %>
-                <div class="review">
-                    <p>Rating: <%= review.rating %></p>
-                    <p>User: <%= review.username %></p>
-                    <p><%= review.text %></p>
-                </div>
-            <% }) %>
-        <% } else { %>
-            <p>No reviews yet.</p>
-        <% } %>
-
-        <h3>Post a Review</h3>
-        <form action="/dashboard/shop/products/<%= product._id %>/reviews" method="post">
-            <label for="rating">Rating:</label>
-            <input type="number" id="rating" name="rating" min="1" max="5" required>
-            <textarea name="text" placeholder="Enter your review" required></textarea>
-            <!-- Include username input instead of userId -->
-            <input type="hidden" name="username" value="<%= user.username %>">
-            <button type="submit">Submit Review</button>
-        </form>
-
-        <a href="/dashboard/shop">Back to Shop</a>
+  <div class="container">
+    <h1><%= product.name %></h1>
+    <div class="product-images">
+      <% if (product.pictureUrls && product.pictureUrls.length > 0) { %>
+        <% product.pictureUrls.forEach(pictureUrl => { %>
+          <div>
+            <img src="<%= pictureUrl %>" alt="Product Image">
+          </div>
+        <% }) %>
+      <% } else { %>
+        <p>No image available</p>
+      <% } %>
     </div>
+    <p>Description: <%= product.description %></p>
+    <p>Price: <%= product.price %></p>
+    <h2>Reviews</h2>
+    <% if (product.reviews.length > 0) { %>
+      <% product.reviews.forEach(review => { %>
+        <div class="review">
+          <p>Rating: <%= review.rating %></p>
+          <p>User: <%= review.username %></p>
+          <p><%= review.text %></p>
+        </div>
+      <% }) %>
+    <% } else { %>
+      <p>No reviews yet.</p>
+    <% } %>
+    <h3>Post a Review</h3>
+    <form action="/dashboard/shop/products/<%= product._id %>/reviews" method="post">
+      <label for="rating">Rating:</label>
+      <input type="number" id="rating" name="rating" min="1" max="5" required>
+      <textarea name="text" placeholder="Enter your review" required></textarea>
+      <!-- Include username input instead of userId -->
+      <input type="hidden" name="username" value="<%= user.username %>">
+      <button type="submit">Submit Review</button>
+    </form>
+    <a href="/dashboard/shop">Back to Shop</a>
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.min.js"></script>
+  <script>
+    $(document).ready(function() {
+      $('.product-images').slick({
+        dots: true,
+        infinite: true,
+        speed: 300,
+        slidesToShow: 1,
+        adaptiveHeight: true,
+        prevArrow: '<button type="button" class="slick-prev">&#8249;</button>',
+        nextArrow: '<button type="button" class="slick-next">&#8250;</button>'
+      });
+    });
+  </script>
 </body>
 </html>

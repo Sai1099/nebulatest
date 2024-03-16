@@ -14,7 +14,7 @@ const productSchema = new mongoose.Schema({
   name: String,
   description: String,
   price: Number,
-  pictureUrl: String,
+   pictureUrls: [{ type: String }], 
 });
 
 // Create a model for the schema
@@ -46,18 +46,18 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 // Set up a route for uploading products
-app.post('/upload', multerUpload.single('image'), async (req, res) => {
-    try {
+app.post('/upload', multerUpload.array('images'), async (req, res) => {
+  try {
       const { name, description, price } = req.body;
   
       // Generate a unique filename (optional)
-      const filename = req.file ? req.file.filename : null;
+      const pictureUrls = req.files.map(file => `/uploads/${file.filename}`);
   
       const product = new Product({
         name,
         description,
         price,
-        pictureUrl: filename ? `/uploads/${filename}` : null, // Update pictureUrl with the correct path
+        pictureUrls , 
       });
   
       await product.save();
